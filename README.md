@@ -63,15 +63,9 @@ python_script:
 
 # Include automation configuration
 automation: !include automations/heating_automations.yaml
-
-# Include input helpers
-input_text: !include input_helpers.yaml
-input_boolean: !include input_helpers.yaml
-input_number: !include input_helpers.yaml
-input_datetime: !include input_helpers.yaml
 ```
 
-Alternatively, you can merge the contents of `input_helpers.yaml` directly into your `configuration.yaml` if you prefer.
+For the input helpers, you need to manually copy the contents of `input_helpers.yaml` into your `configuration.yaml` file, placing each section under the appropriate key (`input_text:`, `input_boolean:`, `input_number:`, `input_datetime:`). See the Configuration section below for details.
 
 ### Step 3: Restart Home Assistant
 

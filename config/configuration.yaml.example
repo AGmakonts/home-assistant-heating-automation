@@ -12,14 +12,18 @@ automation: !include automations/heating_automations.yaml
 # automation manual: !include_dir_merge_list automations/
 
 # Include input helpers
-# Option 1: Include directly
-input_text: !include input_helpers.yaml
-input_boolean: !include input_helpers.yaml
-input_number: !include input_helpers.yaml
-input_datetime: !include input_helpers.yaml
+# Option 1: If you have a single file with all helpers, merge them manually
+# Copy the contents of input_helpers.yaml into your configuration.yaml
 
-# Option 2: If you already have input helpers, you can merge
-# Or manually copy the contents of input_helpers.yaml into your configuration.yaml
+# Option 2: Split input_helpers.yaml into separate files
+# input_text: !include input_helpers_text.yaml
+# input_boolean: !include input_helpers_boolean.yaml
+# input_number: !include input_helpers_number.yaml
+# input_datetime: !include input_helpers_datetime.yaml
+
+# Option 3: Use include_dir_merge_named for a directory of helpers
+# input_text: !include_dir_merge_named helpers/
+# Note: Each file in helpers/ directory should contain only the entity definitions without the parent key
 
 # Enable logbook for heating system events
 logbook:

@@ -42,12 +42,15 @@ automation: !include automations/heating_automations.yaml
 # Method 2: Merge with existing automations
 # automation: !include_dir_merge_list automations/
 
-# Include input helpers (if not already included)
-input_text: !include input_helpers.yaml
-input_boolean: !include input_helpers.yaml
-input_number: !include input_helpers.yaml
-input_datetime: !include input_helpers.yaml
+# Include input helpers
+# You need to manually copy the contents of input_helpers.yaml into your
+# configuration.yaml under the appropriate sections (input_text, input_boolean, etc.)
+# OR split the file and include separately. See configuration.yaml.example for details.
 ```
+
+**Important**: The `input_helpers.yaml` file contains all four helper types. You must either:
+1. Copy the contents manually into your `configuration.yaml`
+2. Split it into separate files (one per helper type) and include each separately
 
 ### 3. Verify Entity Names
 

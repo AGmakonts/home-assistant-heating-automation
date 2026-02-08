@@ -198,7 +198,6 @@ def manage_heating_system(hass, action):
                 'enable' - force enable heating
                 'disable' - force disable heating
     """
-    logger = hass.states.get('logger')
     runtime_data = get_runtime_data(hass)
     now = datetime.now().isoformat()
     
@@ -206,7 +205,6 @@ def manage_heating_system(hass, action):
     if runtime_data.get('system_start'):
         system_runtime = get_elapsed_hours(runtime_data['system_start'])
         if system_runtime >= SYSTEM_MAX_RUNTIME:
-            logger.warning(f"System runtime limit reached: {system_runtime:.1f} hours")
             # Force graceful shutdown
             hass.services.call('input_button', 'press', {
                 'entity_id': SHUTDOWN_BUTTON
@@ -236,7 +234,6 @@ def manage_heating_system(hass, action):
             if runtime_data.get('last_cycle_start'):
                 cycle_time = get_elapsed_hours(runtime_data['last_cycle_start'])
                 if cycle_time < MIN_CYCLE_TIME:
-                    logger.info(f"Minimum cycle time not reached: {cycle_time:.1f} hours")
                     return
             
             # Graceful shutdown
@@ -259,7 +256,6 @@ def manage_heating_system(hass, action):
                 if runtime_data.get('last_cycle_start'):
                     off_time = get_elapsed_hours(runtime_data['last_cycle_start'])
                     if off_time < MIN_CYCLE_TIME:
-                        logger.info(f"Minimum off time not reached: {off_time:.1f} hours")
                         return
                 
                 manage_heating_system(hass, 'enable')
@@ -285,7 +281,7 @@ def manage_heating_system(hass, action):
             for room in GROUND_FLOOR_ROOMS:
                 room_runtime = runtime_data['room_runtimes'].get(room, {})
                 if not room_runtime.get('start') or \
-                   get_elapsed_hours(room_runtime.get('start', '')) >= ROOM_MAX_RUNTIME:
+                   get_elapsed_hours(room_runtime.get('start', '')) < ROOM_MAX_RUNTIME:
                     delta = calculate_temperature_delta(hass, room)
                     if delta and delta > 0:
                         available_rooms_ground.append(room)
@@ -293,7 +289,7 @@ def manage_heating_system(hass, action):
             for room in FIRST_FLOOR_ROOMS:
                 room_runtime = runtime_data['room_runtimes'].get(room, {})
                 if not room_runtime.get('start') or \
-                   get_elapsed_hours(room_runtime.get('start', '')) >= ROOM_MAX_RUNTIME:
+                   get_elapsed_hours(room_runtime.get('start', '')) < ROOM_MAX_RUNTIME:
                     delta = calculate_temperature_delta(hass, room)
                     if delta and delta > 0:
                         available_rooms_first.append(room)
