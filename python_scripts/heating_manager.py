@@ -280,16 +280,42 @@ def manage_heating_system(hass, action):
             
             for room in GROUND_FLOOR_ROOMS:
                 room_runtime = runtime_data['room_runtimes'].get(room, {})
-                if not room_runtime.get('start') or \
-                   get_elapsed_hours(room_runtime.get('start', '')) < ROOM_MAX_RUNTIME:
+                room_elapsed = get_elapsed_hours(room_runtime.get('start', '')) if room_runtime.get('start') else 0
+                
+                # Reset runtime if room reached max or if room reached target temperature
+                if room_runtime.get('start') and room_elapsed >= ROOM_MAX_RUNTIME:
+                    runtime_data['room_runtimes'].pop(room, None)
+                    room_runtime = {}
+                
+                # Check if room has reached target temperature and reset runtime
+                current_temp = get_room_temperature(hass, room)
+                if current_temp and current_temp >= TARGET_TEMP:
+                    runtime_data['room_runtimes'].pop(room, None)
+                    room_runtime = {}
+                
+                # Include room if it hasn't started or hasn't reached max runtime
+                if not room_runtime.get('start'):
                     delta = calculate_temperature_delta(hass, room)
                     if delta and delta > 0:
                         available_rooms_ground.append(room)
             
             for room in FIRST_FLOOR_ROOMS:
                 room_runtime = runtime_data['room_runtimes'].get(room, {})
-                if not room_runtime.get('start') or \
-                   get_elapsed_hours(room_runtime.get('start', '')) < ROOM_MAX_RUNTIME:
+                room_elapsed = get_elapsed_hours(room_runtime.get('start', '')) if room_runtime.get('start') else 0
+                
+                # Reset runtime if room reached max or if room reached target temperature
+                if room_runtime.get('start') and room_elapsed >= ROOM_MAX_RUNTIME:
+                    runtime_data['room_runtimes'].pop(room, None)
+                    room_runtime = {}
+                
+                # Check if room has reached target temperature and reset runtime
+                current_temp = get_room_temperature(hass, room)
+                if current_temp and current_temp >= TARGET_TEMP:
+                    runtime_data['room_runtimes'].pop(room, None)
+                    room_runtime = {}
+                
+                # Include room if it hasn't started or hasn't reached max runtime
+                if not room_runtime.get('start'):
                     delta = calculate_temperature_delta(hass, room)
                     if delta and delta > 0:
                         available_rooms_first.append(room)
@@ -320,8 +346,8 @@ def manage_heating_system(hass, action):
                 # Set target for selected room
                 set_room_target_temperature(hass, selected_room, TARGET_TEMP)
                 
-                # Track room runtime
-                if selected_room not in runtime_data['room_runtimes']:
+                # Track room runtime - start timer if not already started
+                if selected_room not in runtime_data['room_runtimes'] or not runtime_data['room_runtimes'][selected_room].get('start'):
                     runtime_data['room_runtimes'][selected_room] = {'start': now}
                 
                 # Lower temperature for other rooms on same floor
