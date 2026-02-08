@@ -1,0 +1,76 @@
+# Example Home Assistant configuration.yaml snippet
+# Add these lines to your configuration.yaml
+
+# Enable Python scripts
+python_script:
+
+# Include automation configuration
+# Option 1: Include the entire automations file
+automation: !include automations/heating_automations.yaml
+
+# Option 2: If you already have automations, merge them
+# automation manual: !include_dir_merge_list automations/
+
+# Include input helpers
+# Option 1: If you have a single file with all helpers, merge them manually
+# Copy the contents of input_helpers.yaml into your configuration.yaml
+
+# Option 2: Split input_helpers.yaml into separate files
+# input_text: !include input_helpers_text.yaml
+# input_boolean: !include input_helpers_boolean.yaml
+# input_number: !include input_helpers_number.yaml
+# input_datetime: !include input_helpers_datetime.yaml
+
+# Option 3: Use include_dir_merge_named for a directory of helpers
+# input_text: !include_dir_merge_named helpers/
+# Note: Each file in helpers/ directory should contain only the entity definitions without the parent key
+
+# Enable logbook for heating system events
+logbook:
+  include:
+    domains:
+      - switch
+      - climate
+    entities:
+      - switch.sonoff_10017fadeb
+      - input_button.wylacznik_pompy
+
+# Optional: Create a custom panel/view for heating management
+# This is just an example of how you might organize the UI
+
+# Example Lovelace dashboard card configuration (add to your dashboard)
+# - type: entities
+#   title: Heating System Control
+#   entities:
+#     - entity: switch.sonoff_10017fadeb
+#       name: Main Heating Switch
+#     - entity: input_boolean.heating_system_enabled
+#       name: Automation Enabled
+#     - entity: input_number.heating_target_temperature
+#       name: Target Temperature
+#     - entity: input_number.heating_enable_threshold
+#       name: Enable Threshold
+#     - entity: input_number.heating_disable_threshold
+#       name: Disable Threshold
+#     - entity: input_button.wylacznik_pompy
+#       name: Graceful Shutdown
+
+# - type: entities
+#   title: Ground Floor
+#   entities:
+#     - entity: climate.gabinet_ani
+#     - entity: climate.lazienka_parter
+#     - entity: climate.salon
+
+# - type: entities
+#   title: First Floor
+#   entities:
+#     - entity: climate.sypialnia
+#     - entity: climate.lazienka_pietro
+#     - entity: climate.pokoj_z_oknem_naroznym
+#     - entity: climate.pokoj_z_tarasem
+
+# - type: markdown
+#   title: Runtime Statistics
+#   content: >
+#     {{ states('input_text.heating_runtime_data') }}
