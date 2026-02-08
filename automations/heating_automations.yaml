@@ -1,0 +1,170 @@
+# Home Assistant Automation Configuration for Heating System
+# These automations manage the heating system according to operational rules
+
+automation:
+  # 1. Enable heating when any room falls below 17°C
+  - id: heating_enable_low_temperature
+    alias: "Heating: Enable on Low Temperature"
+    description: "Enable heating system when any room temperature drops below 17°C"
+    trigger:
+      - platform: numeric_state
+        entity_id:
+          - climate.gabinet_ani
+          - climate.lazienka_parter
+          - climate.salon
+          - climate.sypialnia
+          - climate.lazienka_pietro
+          - climate.pokoj_z_oknem_naroznym
+          - climate.pokoj_z_tarasem
+        attribute: current_temperature
+        below: 17
+    condition:
+      - condition: state
+        entity_id: switch.sonoff_10017fadeb
+        state: 'off'
+    action:
+      - service: python_script.heating_manager
+        data:
+          action: 'enable'
+      - service: logbook.log
+        data:
+          name: "Heating System"
+          message: "Heating enabled: Room temperature below 17°C"
+          entity_id: switch.sonoff_10017fadeb
+
+  # 2. Disable heating when all rooms exceed 19°C
+  - id: heating_disable_high_temperature
+    alias: "Heating: Disable on High Temperature"
+    description: "Disable heating system when all rooms exceed 19°C"
+    trigger:
+      - platform: numeric_state
+        entity_id:
+          - climate.gabinet_ani
+          - climate.lazienka_parter
+          - climate.salon
+          - climate.sypialnia
+          - climate.lazienka_pietro
+          - climate.pokoj_z_oknem_naroznym
+          - climate.pokoj_z_tarasem
+        attribute: current_temperature
+        above: 19
+    condition:
+      - condition: state
+        entity_id: switch.sonoff_10017fadeb
+        state: 'on'
+      # Check all rooms are above 19°C
+      - condition: numeric_state
+        entity_id: climate.gabinet_ani
+        attribute: current_temperature
+        above: 19
+      - condition: numeric_state
+        entity_id: climate.lazienka_parter
+        attribute: current_temperature
+        above: 19
+      - condition: numeric_state
+        entity_id: climate.salon
+        attribute: current_temperature
+        above: 19
+      - condition: numeric_state
+        entity_id: climate.sypialnia
+        attribute: current_temperature
+        above: 19
+      - condition: numeric_state
+        entity_id: climate.lazienka_pietro
+        attribute: current_temperature
+        above: 19
+      - condition: numeric_state
+        entity_id: climate.pokoj_z_oknem_naroznym
+        attribute: current_temperature
+        above: 19
+      - condition: numeric_state
+        entity_id: climate.pokoj_z_tarasem
+        attribute: current_temperature
+        above: 19
+    action:
+      - service: python_script.heating_manager
+        data:
+          action: 'disable'
+      - service: logbook.log
+        data:
+          name: "Heating System"
+          message: "Heating disabled: All rooms above 19°C"
+          entity_id: switch.sonoff_10017fadeb
+
+  # 3. Periodic heating system check and room priority management
+  - id: heating_periodic_check
+    alias: "Heating: Periodic System Check"
+    description: "Check heating system every 5 minutes and adjust room priorities"
+    trigger:
+      - platform: time_pattern
+        minutes: "/5"
+    action:
+      - service: python_script.heating_manager
+        data:
+          action: 'check'
+
+  # 4. Temperature change monitoring for dynamic adjustments
+  - id: heating_temperature_change
+    alias: "Heating: Temperature Change Monitor"
+    description: "Monitor temperature changes and adjust heating priorities"
+    trigger:
+      - platform: state
+        entity_id:
+          - climate.gabinet_ani
+          - climate.lazienka_parter
+          - climate.salon
+          - climate.sypialnia
+          - climate.lazienka_pietro
+          - climate.pokoj_z_oknem_naroznym
+          - climate.pokoj_z_tarasem
+        attribute: current_temperature
+    action:
+      - service: python_script.heating_manager
+        data:
+          action: 'check'
+
+  # 5. System runtime limit check
+  - id: heating_runtime_limit_check
+    alias: "Heating: Runtime Limit Check"
+    description: "Check system runtime limit every hour"
+    trigger:
+      - platform: time_pattern
+        hours: "/1"
+    condition:
+      - condition: state
+        entity_id: switch.sonoff_10017fadeb
+        state: 'on'
+    action:
+      - service: python_script.heating_manager
+        data:
+          action: 'check'
+      - service: logbook.log
+        data:
+          name: "Heating System"
+          message: "Runtime limit check performed"
+
+  # 6. Reset room runtimes daily
+  - id: heating_daily_reset
+    alias: "Heating: Daily Runtime Reset"
+    description: "Reset room runtime counters at midnight"
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    action:
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.heating_runtime_data
+        data:
+          value: >
+            {
+              "system_start": null,
+              "system_runtime": 0,
+              "room_runtimes": {},
+              "last_cycle_start": null,
+              "current_floor": null,
+              "cycle_count": 0
+            }
+      - service: logbook.log
+        data:
+          name: "Heating System"
+          message: "Daily runtime counters reset"
